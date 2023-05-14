@@ -1,7 +1,9 @@
 #define otladka_serial_print false            //включение вывода отладочной информации по всем сенсорам в "serial print".
+#define otladka_serial_print_ignor false      //включение вывода отладочной информации по всем сенсорам в "serial print ignor".
 #define otladka_serial_print_button false     //включение вывода отладочной информации о кнопке и страницах в "serial print".
 #define otladka_serial_print_time_stamp 3000  //константа времени вывода отладочной информации по всем сенсорам в "serial print".
 uint32_t time_stamp_otladka = millis();       //время между выводами отладочной информации по всем сенсорам в "serial print".
+uint32_t time_stamp_otladka_ignor = millis(); //время между выводами отладочной информации по всем сенсорам в "serial print ignor".
 
 
 #include "tft_code.h"  //пользовательская библиотека для работы с дисплеем
@@ -315,8 +317,9 @@ void loop() {
         }
       }
     };
-    /*
-    if ((otladka_serial_print == true) && (millis() - time_stamp_otladka > otladka_serial_print_time_stamp)) {
+    
+    
+    if ((otladka_serial_print_ignor == true) && (millis() - time_stamp_otladka_ignor > otladka_serial_print_time_stamp)) {
     for (byte i = 1; i <= 8; i++) {
       Serial.print(i);
       Serial.print(": ignor:");
@@ -331,9 +334,9 @@ void loop() {
     Serial.println(danger_counter);
     Serial.println("/////////////////////////////////");
 
-    time_stamp_otladka = millis();
+    time_stamp_otladka_ignor = millis();
     }
-    */
+    
     
     if (danger_counter > 0) {  //если насчитали больше нуля, то переводим светодиод в режим DANGER
       myLed.setMode(LED_DANGER, danger_counter);
