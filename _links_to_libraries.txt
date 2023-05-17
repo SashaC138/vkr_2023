@@ -1,0 +1,23 @@
+1) 
+Adafruit Unified Sensor 
+by Adafruit <info@adafruit.com>
+
+https://github.com/adafruit/Adafruit_Sensor
+
+
+
+
+2)
+DHT sensor library
+by Adafruit
+
+https://github.com/adafruit/DHT-sensor-library
+
+
+
+
+3)
+MQ135
+by GeorgK, ViliusKraujutis, Phoenix1747
+
+https://github.com/Phoenix1747/MQ135

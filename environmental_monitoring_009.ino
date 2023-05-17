@@ -1,7 +1,9 @@
-#define otladka_serial_print false             //включение вывода отладочной информации по всем сенсорам в "serial print".
+#define otladka_serial_print false            //включение вывода отладочной информации по всем сенсорам в "serial print".
+#define otladka_serial_print_ignor false      //включение вывода отладочной информации по всем сенсорам в "serial print ignor".
 #define otladka_serial_print_button false     //включение вывода отладочной информации о кнопке и страницах в "serial print".
 #define otladka_serial_print_time_stamp 3000  //константа времени вывода отладочной информации по всем сенсорам в "serial print".
 uint32_t time_stamp_otladka = millis();       //время между выводами отладочной информации по всем сенсорам в "serial print".
+uint32_t time_stamp_otladka_ignor = millis(); //время между выводами отладочной информации по всем сенсорам в "serial print ignor".
 
 
 #include "tft_code.h"  //пользовательская библиотека для работы с дисплеем
@@ -83,11 +85,11 @@ SENSOR mySensPULSE(SEN_PULSE, 1, 5, 0, 15, 0, 0, 0, 0, 0);
 SENSOR* P = &mySensPULSE;
 SENSOR mySensLUX(SEN_LUX, 2, 100, 200, 400, 0, 0, P, 0, 0);
 SENSOR mySensNOISE(SEN_NOISE, 500, 0, 0, 80, 0, 0, 0, 0, 0);
-SENSOR mySensTEMP(SEN_TEMP, 1000, 0, 21.0, 25.0, &dht, 0, 0, 0, 0);
+SENSOR mySensTEMP(SEN_TEMP, 2000, 0, 21.0, 25.0, &dht, 0, 0, 0, 0);
 SENSOR* T = &mySensTEMP;
-SENSOR mySensHUM(SEN_HUM, 1000, 0, 15.0, 75.0, &dht, 0, 0, 0, 0);
+SENSOR mySensHUM(SEN_HUM, 2000, 0, 15.0, 75.0, &dht, 0, 0, 0, 0);
 SENSOR* H = &mySensHUM;
-SENSOR mySensCO2(SEN_CO2, 500, 5, 380.0, 1000.0, 0, &mq135, 0, T, H);
+SENSOR mySensCO2(SEN_CO2, 2000, 5, 380.0, 1000.0, 0, &mq135, 0, T, H);
 
 SENSOR* SENSOR_ARRAY[] = { 0, &mySensLUX, &mySensPULSE, &mySensNOISE, &mySensTEMP, &mySensHUM, &mySensCO2 };
 //SENSOR* SENSOR_ARRAY[7];
@@ -287,7 +289,7 @@ void loop() {
     (*t).refresh();  //запускает работу текущего сенсора
   };
 
-  /*
+  
   //вывод отладочной информации по всем сенсорам:
   if ((otladka_serial_print == true) && (millis() - time_stamp_otladka > otladka_serial_print_time_stamp)) {
     for (byte i = 1; i <= 6; i++) {
@@ -297,7 +299,7 @@ void loop() {
     Serial.println("");
     time_stamp_otladka = millis();
   }
-*/
+
 
   //обработка переключения состояний светодиода:
   if ((millis() - time_stamp_led) < led_modes_refresh_time) {
@@ -308,28 +310,34 @@ void loop() {
       if ((*SENSOR_ARRAY[i]).getDanger()) {
         //Serial.print("1ignored_pages_array[i+2]: ");
         //Serial.println(ignored_pages_array[i + 2]);
-        if (!(ignored_pages_array[i + 2])) {
+        if (!(ignored_pages_array[i + 2]) && ((*SENSOR_ARRAY[i]).getReady())) {
           //Serial.print("2ignored_pages_array[i+2]: ");
           //Serial.println(ignored_pages_array[i + 2]);
           danger_counter = danger_counter + 1;
         }
       }
     };
-    /*
-    //if ((otladka_serial_print == true) && (millis() - time_stamp_otladka > otladka_serial_print_time_stamp)) {
+    
+    
+    if ((otladka_serial_print_ignor == true) && (millis() - time_stamp_otladka_ignor > otladka_serial_print_time_stamp)) {
     for (byte i = 1; i <= 8; i++) {
       Serial.print(i);
-      Serial.print(": ");
-      Serial.println(ignored_pages_array[i]);
+      Serial.print(": ignor:");
+      Serial.print(ignored_pages_array[i]);
+      Serial.print(" ready:");
+      Serial.print((*SENSOR_ARRAY[i]).getReady());
+      Serial.print(" danger:");
+      Serial.println((*SENSOR_ARRAY[i]).getDanger());
     };
     Serial.println("///////////");
     Serial.print("danger_counter: ");
     Serial.println(danger_counter);
     Serial.println("/////////////////////////////////");
 
-    // time_stamp_otladka = millis();
-    //}
-    */
+    time_stamp_otladka_ignor = millis();
+    }
+    
+    
     if (danger_counter > 0) {  //если насчитали больше нуля, то переводим светодиод в режим DANGER
       myLed.setMode(LED_DANGER, danger_counter);
     } else {

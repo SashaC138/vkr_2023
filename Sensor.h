@@ -2,7 +2,7 @@
 //#include <TroykaMQ.h>
 #include <MQ135.h>
 
-#define TimeToHeaterON 60000
+#define TimeToHeaterON 1000 * 60 * 15  //1000 мс * 60 секунд * 15 = 15 минут
 #define PIN_MQ135_HEATER 2
 
 #define SEN_LUX_analog_pin A0      //пин, откуда мы будем читать недозначения освещённости датчика TEMT6000
@@ -216,10 +216,15 @@ void SENSOR::CheckRead() {
   //Serial.print(_predValue); Serial.print("; "); Serial.print(_Value); Serial.print("; "); Serial.println(analogRead(A5));
   //Serial.println(analogRead(A5));
 
-  if (abs(_predValue - _Value) < _Delta) {
-    _Ready = true;
-  } else {
-    _Ready = false;
+  if (!(_Ready) && (_SENSOR_t != SEN_CO2)) {
+
+    float delta = abs(_predValue - _Value);
+
+    if ((delta < _Delta) && (delta > 0)) {
+      _Ready = true;
+    } else {
+      _Ready = false;
+    }
   }
 };
 
@@ -370,6 +375,9 @@ void SENSOR::refresh_SEN_PULSE() {
     };
 
 
+    CheckRead();
+    _predValue = _Value;
+
     Danger();
 
     //count=count+1;
@@ -392,6 +400,9 @@ void SENSOR::refresh_SEN_LUX() {
 
     _Value = (*_p_puls).getlux();
 
+    CheckRead();
+    _predValue = _Value;
+
     Danger();
 
     _time_stamp = millis();
@@ -412,6 +423,9 @@ void SENSOR::refresh_SEN_SHUM() {
 
     //пока нет датчика шума, зададим ему значение напрямую:
     _Value = 12.3;
+
+    CheckRead();
+    _predValue = _Value;
 
     Danger();
 

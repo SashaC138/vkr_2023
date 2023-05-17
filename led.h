@@ -57,7 +57,7 @@ public:
 
   //установка режима и количества параметров, значения которых вышли за допустимые пределы:
   void setMode(modes_t modes, byte danger_level = 0) {
-    if (_modes == modes) {
+    if ((_modes == modes) && (_danger_level_save == danger_level)) {
       return;
     } else {
       _modes = modes;
