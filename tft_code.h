@@ -17,7 +17,7 @@
 int page_refresh_time[9] = { 0, 500, 2000, 250, 250, 500, 2000, 2000, 2000 };
 char printout[5];  //нужная переменная для вывода значений параметров на экран (что-то вроде массива символов)
 
-//массив, который хранит номера сенсоров в состоянии игнорирования: 
+//массив, который хранит номера сенсоров в состоянии игнорирования:
 //(именно сенсоров, а не страниц, так как обращаться к списку игнорированных параметров нужно будет чаще)
 bool ignored_sensors_array[7] = { 0, false, false, false, false, false, false };
 
@@ -58,7 +58,7 @@ public:
   };
 
   ///отображение значка игнорирования значений текущего параметра (только для страниц 3-8):
-  void Draw_ignor_sign(byte current_page, bool draw);  
+  void Draw_ignor_sign(byte current_page, bool draw);
 
 
 private:
@@ -102,7 +102,7 @@ private:
 
   void Draw_value_borders();  //визуальное отображение положения текущего значения относительно установленных оптимальных границ
 
-  void Draw_danger_sign();  //отображение значка того, что значение параметра вышло за установленные оптимальные границы
+  void Draw_danger_sign(byte pos_x, byte pos_y);  //отображение значка того, что значение параметра вышло за установленные оптимальные границы
 };
 
 
@@ -219,46 +219,25 @@ void SCREEN::Draw_value_borders() {
 
 
 //ПРОЦЕДУРА ОТРИСОВКИ ЗНАЧКА ТРЕВОГИ(выход значения параметра за пределы комфортной зоны):
-void SCREEN::Draw_danger_sign() {
-
-  // switch (_page) {  //переход на текущую страницу для отображения значка тревоги
-  //   case 1:         //страница с 3 параметрами: освещённость, коэф.пульсаций, уровень шума.
-
-  //     break;
-
-  //   case 2:  //страница с 3 параметрами: температура, влажность, CO2.
-
-  //     break;
-
-  //   case 3:  //страница с параметром 1: освещённость.
-
-  //     break;
-
-  //   case 4:  //страница с параметром 2: коэффициент пульсаций.
-
-  //     break;
-
-  //   case 5:  //страница с параметром 3: уровень шума.
-
-  //     break;
-
-  //   case 6:  //страница с параметром 4: температура.
-
-  //     break;
-
-  //   case 7:  //страница с параметром 5: влажность.
-
-  //     break;
-
-  //   case 8:  //страница с параметром 6: CO2.
-
-  //     break;
-
-  //   default:
-  //     //выход по умолчанию, на всякий случай
-  //     break;
-  // };
-  //код процедуры
+void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y) {
+  byte tr_side = 20;
+  (*_p_TFT).stroke(255, 255, 0);
+  byte x = pos_x;
+  byte y = pos_y;
+  /*
+  while (x<(pos_x+tr_side)){
+    (*_p_TFT).line(x, y+tr_side, x+(tr_side/2), y);
+    x = x + 1;
+    y = y + 1;
+  };
+  */
+  (*_p_TFT).line(x, y+tr_side, x+(tr_side/2), y);
+  (*_p_TFT).line(x+(tr_side/2), y, x+tr_side, y+tr_side);
+  (*_p_TFT).line(x+tr_side, y+tr_side, x, y+tr_side);
+  (*_p_TFT).stroke(255, 0, 0);
+  (*_p_TFT).setTextSize(2);
+  (*_p_TFT).text("!", x+5, y+5);
+  (*_p_TFT).text("!", x+6, y+5);
   return;
 }
 
@@ -313,6 +292,7 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("Lux", 78, 18);  //вывод текста "Lux" с отступом от левого края = 78 и от верхнего = 20
+  Draw_danger_sign(138,15);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
@@ -320,6 +300,7 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 78, 64);
+  Draw_danger_sign(138,60);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
@@ -327,6 +308,7 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("dB", 78, 109);
+  Draw_danger_sign(138,105);
 
 
   //При первой отрисовке статичного текста нужно начать рисовать динамический, так как иначе для медленных параметров
@@ -409,13 +391,13 @@ void SCREEN::Static_PageDraw_2() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).text("2", 150, 0);
 
-  (*_p_TFT).stroke(255, 0, 255);         
-  (*_p_TFT).setTextSize(1);              
-  (*_p_TFT).text("Temperatura:", 0, 0);  
-   //сначала рисуем градусы ("°"). Так как такой символ не поддерживается, рисуем универсально - с помощью буквы "о" наименьшего размера:
-  (*_p_TFT).setTextSize(0);              
+  (*_p_TFT).stroke(255, 0, 255);
+  (*_p_TFT).setTextSize(1);
+  (*_p_TFT).text("Temperatura:", 0, 0);
+  //сначала рисуем градусы ("°"). Так как такой символ не поддерживается, рисуем универсально - с помощью буквы "о" наименьшего размера:
+  (*_p_TFT).setTextSize(0);
   (*_p_TFT).stroke(255, 255, 255);
-  (*_p_TFT).text("o", 78, 17);  
+  (*_p_TFT).text("o", 78, 17);
   //далее рисуем символ "C" большего размера. В итоге получается "°C":
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).text("C", 84, 19);
@@ -525,7 +507,7 @@ void SCREEN::Static_PageDraw_3() {
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("Lux", 100, 43);
 
-  _time_stamp = page_refresh_time[_page] + 100;  
+  _time_stamp = page_refresh_time[_page] + 100;
   PageDraw_3();
 };
 
@@ -878,8 +860,8 @@ void SCREEN::PageDraw_8() {
   (*_p_TFT).text(printout, 0, 39);
 
 
-  if (otladka_heater_on) {//если включён вывод состояния датчика CO2 (on/off)
-    if ((*_p_CO2).getHeaterON()) {//если датчик включён
+  if (otladka_heater_on) {          //если включён вывод состояния датчика CO2 (on/off)
+    if ((*_p_CO2).getHeaterON()) {  //если датчик включён
       //рисуем красный круг:
       (*_p_TFT).fill(255, 0, 0);
       (*_p_TFT).stroke(255, 0, 0);
@@ -888,7 +870,7 @@ void SCREEN::PageDraw_8() {
       (*_p_TFT).stroke(255, 255, 255);
       (*_p_TFT).setTextSize(1);
       (*_p_TFT).text("OFF", 132, 88);
-    } else {//если датчик выключен
+    } else {  //если датчик выключен
       //рисуем зелёный круг:
       (*_p_TFT).fill(0, 255, 0);
       (*_p_TFT).stroke(0, 255, 0);

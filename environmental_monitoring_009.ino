@@ -59,8 +59,9 @@ byte danger_counter = 0;  //сколько danger-ов накопилось ср
 //для работы кнопки:
 #define KEY_PRESSED 3  //кнопка для переключения страниц
 #define set_button_short_time 100
-#define set_button_long_time 3000
+#define set_button_long_time 2000 //из-за задержек при обработке получается на секунду больше, поэтому ставим 2 секунды
 #define button_release_time 100
+#define button_can_set_next_page true // включить(true)/выключить(false) переключение страниц по короткому нажатию кнопки
 //
 bool flag = false;
 uint32_t btnTimer = 0;
@@ -256,8 +257,10 @@ void checkButton_and_setPage(bool btnState, byte current_page) {
   if ((!btnState) && (flag) && ((millis() - btnTimer) > button_release_time)) {
     flag = false;
     if (flag_short) {
-      //временно, для переключения страниц:
-      myScreen.nextpage(1);
+      //"резервное" переключение страниц:
+      if (button_can_set_next_page){  //если флагом разрешили переключать страницы кнопкой
+        myScreen.nextpage(1);
+      }      
       flag_short = false;
     };
     flag_long = true;
@@ -279,9 +282,9 @@ void loop() {
 
   if (ignored_pages_array[current_page] == 1) {
     myScreen.Draw_ignor_sign(current_page, 1);  //рисуем значок игнора
-  } else {
+  } else if (current_page >= 3){
     myScreen.Draw_ignor_sign(current_page, 0);  //убираем значок игнора
-  }
+  };
   myScreen.refresh();
 
   for (byte i = 1; i <= 6; i++) {
@@ -357,9 +360,17 @@ void loop() {
   current_page = myScreen.getCurrentPage();
   checkButton_and_setPage(btnState, current_page);
 
-
+  
   signed char t = encoder_1.check_and_get();
+  /*
+  if (millis() - time_stamp_otladka > 1000){
+    Serial.print("1signed char t1 = ");
+    Serial.println(t);
+    time_stamp_otladka = millis();
+  }
+  */
   if (!(t == 0)) {
+    //Serial.print("2signed char t2 = ");
     //Serial.println(t);
     myScreen.nextpage(t);
   };
