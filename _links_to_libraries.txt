@@ -16,7 +16,7 @@ https://github.com/adafruit/DHT-sensor-library
 
 
 
-3)
+3) Инфомрация об оригинальной библиотеке MQ135, которая была переписана и теперь используется как пользовательская:
 MQ135
 by GeorgK, ViliusKraujutis, Phoenix1747
 
