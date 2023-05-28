@@ -1,8 +1,8 @@
 #include "DHT.h"
 //#include <TroykaMQ.h>
-#include <MQ135.h>
+#include "MQ135plus.h"
 
-#define TimeToHeaterON 1000 * 60 * 15  //1000 мс * 60 секунд * 15 = 15 минут
+#define TimeToHeaterON 1000 * 60 * 1  //1000 мс * 60 секунд * 15 = 15 минут
 #define PIN_MQ135_HEATER 2
 
 #define SEN_LUX_analog_pin A0      //пин, откуда мы будем читать недозначения освещённости датчика TEMT6000
@@ -40,7 +40,7 @@ public:
   //Конструктор
   //  тип датчика, ссылка на объект обслуживающим физический датчик, время обновления, комфортный интервал
   SENSOR(SENSOR_t _sen_t, int _time = 1000, float delta = 0, float comfort_min = 0, float comfort_max = 0.0,
-         DHT* dht = 0, MQ135* mq135 = 0, SENSOR* p = 0, SENSOR* t = 0, SENSOR* h = 0) {
+         DHT* dht = 0, MQ135plus* mq135 = 0, SENSOR* p = 0, SENSOR* t = 0, SENSOR* h = 0) {
     _SENSOR_t = _sen_t;
     //для ссылок на существующие объекты НЕродственники
     _p_dht = dht;
@@ -103,7 +103,7 @@ public:
 private:
   SENSOR_t _SENSOR_t;
   DHT* _p_dht;
-  MQ135* _p_mq;
+  MQ135plus* _p_mq;
   SENSOR* _p_puls;
   SENSOR* _p_temp;
   SENSOR* _p_hum;
@@ -275,7 +275,10 @@ void SENSOR::OnLine() {
     //(*_p_mq).heaterPwrHigh();
 
     _time_stamp_ForHeater = millis();
-  }
+  };
+
+  //Serial.println(_Value);
+  //Serial.println(_HeaterON);
 
   //Как это связать с _Ready
   if (_HeaterON) {
