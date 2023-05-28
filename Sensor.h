@@ -281,11 +281,11 @@ void SENSOR::OnLine() {
   //Serial.println(_HeaterON);
 
   //Как это связать с _Ready
-  if (_HeaterON) {
+  if (_HeaterON == true) {
     //(*_p_mq).heaterPwrHigh();
     digitalWrite(PIN_MQ135_HEATER, HIGH);
   }
-  if (!_HeaterON) {
+  if (_HeaterON == false) {
     //(*_p_mq).heaterPwrOff();
     digitalWrite(PIN_MQ135_HEATER, LOW);
   }

@@ -62,10 +62,11 @@ public:
 
 
 private:
-  byte _page = 1;         //текущая страница
-  bool _nextpage = true;  //флаг была ли изменена страница (было ли переключение на другую страницу)
-  uint32_t _time_stamp;   //время подследнего обновления
-  TFT* _p_TFT;            //указатель на класс TFT, чтобы использовать его команды
+  byte _page = 1;                         //текущая страница
+  bool _nextpage = true;                  //флаг была ли изменена страница (было ли переключение на другую страницу)
+  uint32_t _time_stamp = millis();        //время подследнего обновления для динамических параметров
+  uint32_t _time_stamp_ignor = millis();  //время подследнего обновления для отображения значка игнорирования
+  TFT* _p_TFT;                            //указатель на класс TFT, чтобы использовать его команды
 
   //ссылки на объекты датчиков для хранения данных с них:
   SENSOR* _p_LUX;
@@ -231,13 +232,13 @@ void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y) {
     y = y + 1;
   };
   */
-  (*_p_TFT).line(x, y+tr_side, x+(tr_side/2), y);
-  (*_p_TFT).line(x+(tr_side/2), y, x+tr_side, y+tr_side);
-  (*_p_TFT).line(x+tr_side, y+tr_side, x, y+tr_side);
+  (*_p_TFT).line(x, y + tr_side, x + (tr_side / 2), y);
+  (*_p_TFT).line(x + (tr_side / 2), y, x + tr_side, y + tr_side);
+  (*_p_TFT).line(x + tr_side, y + tr_side, x, y + tr_side);
   (*_p_TFT).stroke(255, 0, 0);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("!", x+5, y+5);
-  (*_p_TFT).text("!", x+6, y+5);
+  (*_p_TFT).text("!", x + 5, y + 5);
+  (*_p_TFT).text("!", x + 6, y + 5);
   return;
 }
 
@@ -245,6 +246,9 @@ void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y) {
 
 //ПРОЦЕДУРА ОТОБРАЖЕНИЯ ЗНАЧКА ИГНОРИРОВАНИЯ ЗНАЧЕНИЙ ТЕКУЩЕГО ПАРАМЕТРА (только для страниц 3-8 (только ли?) ):
 void SCREEN::Draw_ignor_sign(byte current_page, bool draw) {
+  if ((millis() - _time_stamp_ignor) < screen_refresh_time) {
+    return;
+  };
   if (current_page == _page) {
     if (draw) {
       //рисуем красный восклицательный знак:
@@ -267,6 +271,7 @@ void SCREEN::Draw_ignor_sign(byte current_page, bool draw) {
       ignored_sensors_array[current_page - 2] = false;  //снятие блокировки вывода сенсора, страницу которого заблокировали
     }
   }
+  _time_stamp_ignor = millis();
 };
 
 
@@ -292,7 +297,7 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("Lux", 78, 18);  //вывод текста "Lux" с отступом от левого края = 78 и от верхнего = 20
-  Draw_danger_sign(138,15);
+  Draw_danger_sign(138, 15);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
@@ -300,7 +305,7 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 78, 64);
-  Draw_danger_sign(138,60);
+  Draw_danger_sign(138, 60);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
@@ -308,7 +313,7 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("dB", 78, 109);
-  Draw_danger_sign(138,105);
+  Draw_danger_sign(138, 105);
 
 
   //При первой отрисовке статичного текста нужно начать рисовать динамический, так как иначе для медленных параметров
