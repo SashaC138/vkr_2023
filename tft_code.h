@@ -103,7 +103,7 @@ private:
 
   void Draw_value_borders();  //визуальное отображение положения текущего значения относительно установленных оптимальных границ
 
-  void Draw_danger_sign(byte pos_x, byte pos_y);  //отображение значка того, что значение параметра вышло за установленные оптимальные границы
+  void Draw_danger_sign(byte pos_x, byte pos_y, bool draw_sign);  //отображение значка того, что значение параметра вышло за установленные оптимальные границы
 };
 
 
@@ -220,25 +220,47 @@ void SCREEN::Draw_value_borders() {
 
 
 //ПРОЦЕДУРА ОТРИСОВКИ ЗНАЧКА ТРЕВОГИ(выход значения параметра за пределы комфортной зоны):
-void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y) {
+void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y, bool draw_sign) {
   byte tr_side = 20;
-  (*_p_TFT).stroke(255, 255, 0);
-  byte x = pos_x;
-  byte y = pos_y;
-  /*
-  while (x<(pos_x+tr_side)){
-    (*_p_TFT).line(x, y+tr_side, x+(tr_side/2), y);
-    x = x + 1;
-    y = y + 1;
-  };
-  */
+  if (draw_sign == true) {
+    (*_p_TFT).stroke(255, 255, 0);
+    byte x = 1;
+    byte y = 1;
+
+    (*_p_TFT).line(pos_x, pos_y + tr_side, pos_x + tr_side, pos_y + tr_side);
+    while (x <= ((tr_side) / 2)) {
+      (*_p_TFT).line(pos_x + x, pos_y + tr_side - y, pos_x + tr_side - x, pos_y + tr_side - y);
+      y = y + 1;
+      (*_p_TFT).line(pos_x + x, pos_y + tr_side - y, pos_x + tr_side - x, pos_y + tr_side - y);
+      y = y + 1;
+      x = x + 1;
+    };
+
+    /*
+  (*_p_TFT).line(x, y + tr_side, x + tr_side, y + tr_side);
+  (*_p_TFT).line(x+1, y + tr_side-1, x + tr_side-1, y + tr_side-1);
+  (*_p_TFT).line(x+1, y + tr_side-2, x + tr_side-1, y + tr_side-2);
+  (*_p_TFT).line(x+2, y + tr_side-3, x + tr_side-2, y + tr_side-3);
+  (*_p_TFT).line(x+2, y + tr_side-4, x + tr_side-2, y + tr_side-4);
+
+
+
   (*_p_TFT).line(x, y + tr_side, x + (tr_side / 2), y);
   (*_p_TFT).line(x + (tr_side / 2), y, x + tr_side, y + tr_side);
   (*_p_TFT).line(x + tr_side, y + tr_side, x, y + tr_side);
-  (*_p_TFT).stroke(255, 0, 0);
-  (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("!", x + 5, y + 5);
-  (*_p_TFT).text("!", x + 6, y + 5);
+  */
+    (*_p_TFT).stroke(255, 0, 0);
+    (*_p_TFT).setTextSize(2);
+    (*_p_TFT).text("!", pos_x + 4, pos_y + 6);
+    (*_p_TFT).text("!", pos_x + 6, pos_y + 6);
+  } else {
+    (*_p_TFT).fill(0, 0, 0);                                         //цвет заливки - чёрный
+    (*_p_TFT).stroke(0, 0, 0);                                       //цвет границы - чёрный
+    (*_p_TFT).rect(pos_x, pos_y, pos_x + tr_side, pos_y + tr_side);  //чёрный квадрат на месте знака danger
+  }
+  //меняем цвет текста обратно на белый и размер на "3":
+  (*_p_TFT).stroke(255, 255, 255);
+  (*_p_TFT).setTextSize(3);
   return;
 }
 
@@ -297,7 +319,6 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("Lux", 78, 18);  //вывод текста "Lux" с отступом от левого края = 78 и от верхнего = 20
-  Draw_danger_sign(138, 15);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
@@ -305,7 +326,6 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 78, 64);
-  Draw_danger_sign(138, 60);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
@@ -313,7 +333,6 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("dB", 78, 109);
-  Draw_danger_sign(138, 105);
 
 
   //При первой отрисовке статичного текста нужно начать рисовать динамический, так как иначе для медленных параметров
@@ -371,13 +390,15 @@ void SCREEN::PageDraw_1() {
   //таким образом будет выводиться последнее полученное значение
   v_LUX.toCharArray(printout, 5);   //5 - количество символов (5-1=4, 4 символа выводится)
   (*_p_TFT).text(printout, 0, 15);  //вывести text по координатам x=0 от левого края и y=15 от верхнего
+  Draw_danger_sign(138, 15, (*_p_LUX).get_sensors_is_danger());
   v_PULS.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 60);
+  Draw_danger_sign(138, 60, (*_p_PULS).get_sensors_is_danger());
   v_SHUM.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 105);
+  Draw_danger_sign(138, 105, (*_p_NOISE).get_sensors_is_danger());
 
 
-  //здесь должен быть вызов процедуры отрисовки значка тревоги, если параметр вышел за оптимальные границы значений.
   //здесь должен быть вызов процедуры отрисовки значка уровня отклонения параметра от оптимального.
 
   _time_stamp = millis();
@@ -474,14 +495,16 @@ void SCREEN::PageDraw_2() {
   //таким образом будет выводиться последнее полученное значение
   v_TEMP.toCharArray(printout, 5);  //5 - количество символов (5-1=4, 4 символа выводится)
   (*_p_TFT).text(printout, 0, 15);  //вывести text по координатам x=0 от левого края и y=15 от верхнего
+  Draw_danger_sign(138, 15, (*_p_TEMP).get_sensors_is_danger());
   v_HUM.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 60);
+  Draw_danger_sign(138, 60, (*_p_HUM).get_sensors_is_danger());
   v_GAS.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 105);
+  Draw_danger_sign(138, 105, (*_p_CO2).get_sensors_is_danger());
 
 
 
-  //здесь должен быть вызов процедуры отрисовки значка тревоги, если параметр вышел за оптимальные границы значений.
   //здесь должен быть вызов процедуры отрисовки значка уровня отклонения параметра от оптимального.
 
   _time_stamp = millis();
@@ -868,8 +891,8 @@ void SCREEN::PageDraw_8() {
   //Serial.println((*_p_CO2).getHeaterON());
   //Serial.print("otladka_heater_on=");
   //Serial.println(otladka_heater_on);
-  
-  if (otladka_heater_on) {          //если включён вывод состояния датчика CO2 (on/off)
+
+  if (otladka_heater_on) {           //если включён вывод состояния датчика CO2 (on/off)
     if (!(*_p_CO2).getHeaterON()) {  //если датчик включён
       //рисуем красный круг:
       (*_p_TFT).fill(255, 0, 0);
