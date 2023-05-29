@@ -1,5 +1,5 @@
-#define FRONT_TIMEOUT 30  //сколько времени ждем фронт сигнала
-#define USER_TIMEOUT 250  //сколько времени ждем фронт сигнала
+#define FRONT_TIMEOUT 50  //сколько времени ждем фронт сигнала
+#define USER_TIMEOUT 350  //сколько времени ждем фронт сигнала
 
 // состояния обработчика енкодера
 enum en_modes_t {
@@ -55,10 +55,10 @@ signed char ENCODER::check_and_get() {
   //Serial.print(L_pred); Serial.print(','); Serial.println(L);
   //Serial.print(L); Serial.print(','); Serial.println(R);
 
-  if ((millis() - _time_stamp) > (USER_TIMEOUT)) {
-    en_mode = EN_WAIT;
-    _time_stamp = millis();
-  };
+  //if ((millis() - _time_stamp) > (USER_TIMEOUT)) {
+  //  en_mode = EN_WAIT;
+  //  _time_stamp = millis();
+  //};
 
 
   //Serial.print(en_mode); Serial.print(','); Serial.print(L_change); Serial.print(','); Serial.println(R_change);
@@ -96,7 +96,7 @@ signed char ENCODER::check_and_get() {
       };
     } else if (en_mode == EN_HOLD) {
       //;
-      if (R & L) {
+      if ((R==1) & (L==1)) {
         if ((millis() - _time_stamp) > FRONT_TIMEOUT) {
           en_mode = EN_WAIT;
           _time_stamp = millis();

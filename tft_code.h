@@ -864,9 +864,13 @@ void SCREEN::PageDraw_8() {
   v_GAS.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 39);
 
-
+  //Serial.print("getHeaterON()=");
+  //Serial.println((*_p_CO2).getHeaterON());
+  //Serial.print("otladka_heater_on=");
+  //Serial.println(otladka_heater_on);
+  
   if (otladka_heater_on) {          //если включён вывод состояния датчика CO2 (on/off)
-    if ((*_p_CO2).getHeaterON()) {  //если датчик включён
+    if (!(*_p_CO2).getHeaterON()) {  //если датчик включён
       //рисуем красный круг:
       (*_p_TFT).fill(255, 0, 0);
       (*_p_TFT).stroke(255, 0, 0);

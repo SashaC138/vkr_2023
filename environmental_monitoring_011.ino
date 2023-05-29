@@ -42,7 +42,8 @@ DHT dht(DHTPIN, DHTTYPE);
 // имя для пина, к которому подключен датчик:
 #define PIN_MQ135 A5
 //инициализация датчика:
-MQ135plus mq135(PIN_MQ135, 175);
+//MQ135plus mq135(PIN_MQ135, RZERO_VALUE_MQ135);
+MQ135plus mq135(PIN_MQ135, 236);
 
 
 
@@ -385,8 +386,8 @@ void loop() {
   }
 */
   if (!(t == 0)) {
-    //Serial.print("2signed char t2 = ");
-    //Serial.println(t);
+    Serial.print("2signed char t2 = ");
+    Serial.println(t);
     myScreen.nextpage(t);
   };
 }
