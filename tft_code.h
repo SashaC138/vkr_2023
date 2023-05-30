@@ -101,7 +101,7 @@ private:
   void PageDraw_8();
 
 
-  void Draw_value_borders();  //визуальное отображение положения текущего значения относительно установленных оптимальных границ
+  void Draw_value_borders(byte pos_x, byte pos_y);  //визуальное отображение положения текущего значения относительно установленных оптимальных границ
 
   void Draw_danger_sign(byte pos_x, byte pos_y, bool draw_sign);  //отображение значка того, что значение параметра вышло за установленные оптимальные границы
 };
@@ -211,9 +211,49 @@ void SCREEN::nextpage(byte direction) {
 
 
 
-//ПРОЦЕДУРА ОТРИСОВКИ ЗНАЧКА, ОТОБРААЖЮЩЕГО ТЕКУЩЕЕ ЗНАЧЕНИЕ И ЕГО ПОЛОЖЕНИЕ ОТНОСИТЕЛЬНО КОМФОРТНЫХ ГРАНИЦ:
-void SCREEN::Draw_value_borders() {
-  //код процедуры
+//ПРОЦЕДУРА ОТРИСОВКИ ЗНАЧКА, ОТОБРАЖАЮЩЕГО ТЕКУЩЕЕ ЗНАЧЕНИЕ И ЕГО ПОЛОЖЕНИЕ ОТНОСИТЕЛЬНО ОПТИМАЛЬНЫХ ГРАНИЦ:
+void SCREEN::Draw_value_borders(byte pos_x, byte pos_y) {
+  byte tr_side = 20;
+
+  //отрисовка точки посередине:
+  (*_p_TFT).stroke(255, 255, 255);
+  (*_p_TFT).setTextSize(2);
+  (*_p_TFT).text(".", pos_x + (tr_side/2) - 4, pos_y - (tr_side/2) -2);
+
+
+  (*_p_TFT).stroke(255, 255, 0);
+  byte x = 1;
+  byte y = 1;
+
+  
+  
+
+  (*_p_TFT).line(pos_x, pos_y + tr_side, pos_x + tr_side, pos_y + tr_side);
+  while (x <= ((tr_side) / 2)) {
+    (*_p_TFT).line(pos_x + x, pos_y + tr_side - y, pos_x + tr_side - x, pos_y + tr_side - y);
+    y = y + 1;
+    (*_p_TFT).line(pos_x + x, pos_y + tr_side - y, pos_x + tr_side - x, pos_y + tr_side - y);
+    y = y + 1;
+    x = x + 1;
+  };
+
+  /*
+  (*_p_TFT).line(x, y + tr_side, x + tr_side, y + tr_side);
+  (*_p_TFT).line(x+1, y + tr_side-1, x + tr_side-1, y + tr_side-1);
+  (*_p_TFT).line(x+1, y + tr_side-2, x + tr_side-1, y + tr_side-2);
+  (*_p_TFT).line(x+2, y + tr_side-3, x + tr_side-2, y + tr_side-3);
+  (*_p_TFT).line(x+2, y + tr_side-4, x + tr_side-2, y + tr_side-4);
+
+
+
+  (*_p_TFT).line(x, y + tr_side, x + (tr_side / 2), y);
+  (*_p_TFT).line(x + (tr_side / 2), y, x + tr_side, y + tr_side);
+  (*_p_TFT).line(x + tr_side, y + tr_side, x, y + tr_side);
+  */
+
+  //меняем цвет текста обратно на белый и размер на "3":
+  (*_p_TFT).stroke(255, 255, 255);
+  (*_p_TFT).setTextSize(3);
   return;
 };
 
