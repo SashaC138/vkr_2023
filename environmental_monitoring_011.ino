@@ -1,4 +1,4 @@
-#define otladka_serial_print true             //включение вывода отладочной информации по всем сенсорам в "serial print".
+#define otladka_serial_print false             //включение вывода отладочной информации по всем сенсорам в "serial print".
 #define otladka_serial_print_ignor false       //включение вывода отладочной информации по всем сенсорам в "serial print ignor".
 #define otladka_serial_print_button false      //включение вывода отладочной информации о кнопке и страницах в "serial print".
 #define otladka_serial_print_time_stamp 3000   //константа времени вывода отладочной информации по всем сенсорам в "serial print".
@@ -293,7 +293,7 @@ void loop() {
   if ((millis() - timestamp1) < 500) {
     count1 = count1 + 1;
   } else {
-    Serial.println(count1);
+    //Serial.println(count1);
     count1 = 0;
     timestamp1 = millis();
   };
@@ -385,8 +385,8 @@ void loop() {
   }
 */
   if (!(t == 0)) {
-    Serial.print("2signed char t2 = ");
-    Serial.println(t);
+    //Serial.print("2signed char t2 = ");
+    //Serial.println(t);
     myScreen.nextpage(t);
   };
 }

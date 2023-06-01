@@ -7,8 +7,8 @@
 #define otladka_red_rectangle true                   //отладочный флаг для включения границ полей вывода символов для динамических данных
 #define otladka_heater_on true                       //отладочный флаг для включения отображения состояния датчика CO2 (on/off)
 #define get_sensors_value getValue                   //(как называется метод, отвечающий за получение значения)
-#define get_sensors_value_LOW_border getСomfort_min  //(как называется метод, отвечающий за получение нижней границы оптимального значения)
-#define get_sensors_value_HI_border getСomfort_max   //(как называется метод, отвечающий за получение верхней границы оптимального значения)
+#define get_sensors_value_LOW_border getComfortMin   //(как называется метод, отвечающий за получение нижней границы оптимального значения)
+#define get_sensors_value_HIGH_border getComfortMax  //(как называется метод, отвечающий за получение верхней границы оптимального значения)
 #define get_sensors_is_danger getDanger              //(как называется метод, отвечающий за получение состояния сенсора (тревога или нет))
 
 //массив значений периодов обновлений страниц в миллисекундах:
@@ -16,6 +16,14 @@
 //(1я и 2я страницы - по 3 параметра, далее - по одному пораметру на каждой из 6ти страниц)
 int page_refresh_time[9] = { 0, 500, 2000, 250, 250, 500, 2000, 2000, 2000 };
 char printout[5];  //нужная переменная для вывода значений параметров на экран (что-то вроде массива символов)
+
+
+//массив, хранящий верхние границы оптимальных значений сенсоров:
+float sensors_high_border[7] = { -0, 0, 0, 0, 0, 0, 0 };
+
+//массив, хранящий нижние границы оптимальных значений сенсоров:
+float sensors_low_border[7] = { -0, 0, 0, 0, 0, 0, 0 };
+
 
 //массив, который хранит номера сенсоров в состоянии игнорирования:
 //(именно сенсоров, а не страниц, так как обращаться к списку игнорированных параметров нужно будет чаще)
@@ -44,6 +52,12 @@ public:
     _p_TEMP = SENSOR_ARRAY[4];
     _p_HUM = SENSOR_ARRAY[5];
     _p_CO2 = SENSOR_ARRAY[6];
+
+    //заполнение массивов верхних и нижних границ оптимальных значений параметров:
+    for (byte i = 1; i <= 6; i++) {
+      sensors_high_border[i] = (*SENSOR_ARRAY[i]).get_sensors_value_HIGH_border();
+      sensors_low_border[i] = (*SENSOR_ARRAY[i]).get_sensors_value_LOW_border();
+    }
   };
 
 
@@ -101,7 +115,7 @@ private:
   void PageDraw_8();
 
 
-  void Draw_value_borders(byte pos_x, byte pos_y);  //визуальное отображение положения текущего значения относительно установленных оптимальных границ
+  void Draw_value_borders(byte pos_x, byte pos_y, float comfort_min, float comfort_max, float value, byte direction_number);  //визуальное отображение положения текущего значения относительно установленных оптимальных границ
 
   void Draw_danger_sign(byte pos_x, byte pos_y, bool draw_sign);  //отображение значка того, что значение параметра вышло за установленные оптимальные границы
 };
@@ -212,44 +226,91 @@ void SCREEN::nextpage(byte direction) {
 
 
 //ПРОЦЕДУРА ОТРИСОВКИ ЗНАЧКА, ОТОБРАЖАЮЩЕГО ТЕКУЩЕЕ ЗНАЧЕНИЕ И ЕГО ПОЛОЖЕНИЕ ОТНОСИТЕЛЬНО ОПТИМАЛЬНЫХ ГРАНИЦ:
-void SCREEN::Draw_value_borders(byte pos_x, byte pos_y) {
+void SCREEN::Draw_value_borders(byte pos_x, byte pos_y, float comfort_min, float comfort_max, float value, byte direction_number) {
+
   byte tr_side = 20;
 
+  (*_p_TFT).fill(0, 0, 0);                                     //цвет заливки - чёрный
+  (*_p_TFT).stroke(0, 0, 0);                                   //цвет границы - чёрный
+  (*_p_TFT).rect(pos_x - 1, pos_y, tr_side + 3, tr_side + 1);  //чёрный квадрат на месте знака danger
+
   //отрисовка точки посередине:
+  (*_p_TFT).fill(255, 255, 255);
   (*_p_TFT).stroke(255, 255, 255);
-  (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text(".", pos_x + (tr_side/2) - 4, pos_y - (tr_side/2) -2);
+  if (direction_number == 1) {
+    (*_p_TFT).circle(pos_x + (tr_side / 2), pos_y + tr_side, 2);
+  } else if (direction_number == 2) {
+    (*_p_TFT).circle(pos_x + (tr_side / 2), pos_y + (tr_side / 2), 2);
+  }
+
+  byte x = 0;
+  byte y = 0;
+  byte step = 0;
+  byte color_g = 255;
+  byte color_r = 0;
+  float center = 0;
+
+  if (direction_number == 2) {  //если будет рисоваться иконка "двунаправленной" возможности изменения
+    center = (comfort_min + comfort_max) / 2;
+  } else if (direction_number == 1) {  //если будет рисоваться иконка "одноправленной" возможности изменения (нижняя граница всегда 0)
+    center = comfort_min;
+  }
 
 
-  (*_p_TFT).stroke(255, 255, 0);
-  byte x = 1;
-  byte y = 1;
+  if (value > center) {
+    step = ceil((value - center) / ((comfort_max - center) / 10));
 
-  
-  
-
-  (*_p_TFT).line(pos_x, pos_y + tr_side, pos_x + tr_side, pos_y + tr_side);
-  while (x <= ((tr_side) / 2)) {
-    (*_p_TFT).line(pos_x + x, pos_y + tr_side - y, pos_x + tr_side - x, pos_y + tr_side - y);
-    y = y + 1;
-    (*_p_TFT).line(pos_x + x, pos_y + tr_side - y, pos_x + tr_side - x, pos_y + tr_side - y);
-    y = y + 1;
-    x = x + 1;
-  };
-
-  /*
-  (*_p_TFT).line(x, y + tr_side, x + tr_side, y + tr_side);
-  (*_p_TFT).line(x+1, y + tr_side-1, x + tr_side-1, y + tr_side-1);
-  (*_p_TFT).line(x+1, y + tr_side-2, x + tr_side-1, y + tr_side-2);
-  (*_p_TFT).line(x+2, y + tr_side-3, x + tr_side-2, y + tr_side-3);
-  (*_p_TFT).line(x+2, y + tr_side-4, x + tr_side-2, y + tr_side-4);
-
-
-
-  (*_p_TFT).line(x, y + tr_side, x + (tr_side / 2), y);
-  (*_p_TFT).line(x + (tr_side / 2), y, x + tr_side, y + tr_side);
-  (*_p_TFT).line(x + tr_side, y + tr_side, x, y + tr_side);
-  */
+    if (direction_number == 1) {
+      if (step > 10) {
+        step = 10;
+      };
+      while (x <= (step-1)) {
+        (*_p_TFT).stroke(color_r, color_g, 0);
+        if (x < 5) {
+          color_r = color_r + 51;  //за 5 шагов до 255
+        } else {
+          color_g = color_g - 51;  //за 5 шагов до 0
+        };
+        (*_p_TFT).line(pos_x + (tr_side / 2) - 1 - x, pos_y + tr_side - y, pos_x + (tr_side / 2) + 2 + x, pos_y + tr_side - y);
+        y = y + 1;
+        x = x + 1;
+        (*_p_TFT).stroke(color_r, color_g, 0);
+        (*_p_TFT).line(pos_x + (tr_side / 2) - 1 - x, pos_y + tr_side - y, pos_x + (tr_side / 2) + 2 + x, pos_y + tr_side - y);
+        y = y + 1;
+      }
+    } else if (direction_number == 2) {
+      if (step > 10) {
+        step = 10;
+      };
+      while (y <= step) {
+        (*_p_TFT).stroke(color_r, color_g, 0);
+        if (y < 5) {
+          color_r = color_r + 51;  //за 5 шагов до 255
+        } else {
+          color_g = color_g - 51;  //за 5 шагов до 0
+        };
+        (*_p_TFT).line(pos_x + (tr_side / 2) - 1 - x, pos_y + (tr_side / 2) - y, pos_x + (tr_side / 2) + 2 + x, pos_y + (tr_side / 2) - y);
+        y = y + 1;
+        x = x + 1;
+      };
+    };
+  } else if (value < center) {
+    step = ceil((center - value) / ((center - comfort_min) / 10));
+    if ((direction_number == 2) && (step > 10)) {
+      step = 10;
+    };
+    while (y <= step) {
+      (*_p_TFT).stroke(color_r, color_g, 0);
+      if (y < 5) {
+        color_r = color_r + 51;  //за 5 шагов до 255
+      } else {
+        color_g = color_g - 51;  //за 5 шагов до 0
+      };
+      (*_p_TFT).line(pos_x + (tr_side / 2) - 1 - x, pos_y + (tr_side / 2) + y, pos_x + (tr_side / 2) + 2 + x, pos_y + (tr_side / 2) + y);
+      y = y + 1;
+      x = x + 1;
+    };
+  }
 
   //меняем цвет текста обратно на белый и размер на "3":
   (*_p_TFT).stroke(255, 255, 255);
@@ -294,9 +355,9 @@ void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y, bool draw_sign) {
     (*_p_TFT).text("!", pos_x + 4, pos_y + 6);
     (*_p_TFT).text("!", pos_x + 6, pos_y + 6);
   } else {
-    (*_p_TFT).fill(0, 0, 0);                                         //цвет заливки - чёрный
-    (*_p_TFT).stroke(0, 0, 0);                                       //цвет границы - чёрный
-    (*_p_TFT).rect(pos_x, pos_y, pos_x + tr_side, pos_y + tr_side);  //чёрный квадрат на месте знака danger
+    (*_p_TFT).fill(0, 0, 0);                             //цвет заливки - чёрный
+    (*_p_TFT).stroke(0, 0, 0);                           //цвет границы - чёрный
+    (*_p_TFT).rect(pos_x, pos_y, tr_side, tr_side + 2);  //чёрный квадрат на месте знака danger
   }
   //меняем цвет текста обратно на белый и размер на "3":
   (*_p_TFT).stroke(255, 255, 255);
@@ -430,13 +491,16 @@ void SCREEN::PageDraw_1() {
   //таким образом будет выводиться последнее полученное значение
   v_LUX.toCharArray(printout, 5);   //5 - количество символов (5-1=4, 4 символа выводится)
   (*_p_TFT).text(printout, 0, 15);  //вывести text по координатам x=0 от левого края и y=15 от верхнего
-  Draw_danger_sign(138, 15, (*_p_LUX).get_sensors_is_danger());
+  Draw_danger_sign(139, 15, (*_p_LUX).get_sensors_is_danger());
+  Draw_value_borders(115, 15, sensors_low_border[1], sensors_high_border[1], (*_p_LUX).get_sensors_value(), 2);
   v_PULS.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 60);
-  Draw_danger_sign(138, 60, (*_p_PULS).get_sensors_is_danger());
+  Draw_danger_sign(139, 60, (*_p_PULS).get_sensors_is_danger());
+  Draw_value_borders(115, 60, sensors_low_border[2], sensors_high_border[2], (*_p_PULS).get_sensors_value(), 1);
   v_SHUM.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 105);
-  Draw_danger_sign(138, 105, (*_p_NOISE).get_sensors_is_danger());
+  Draw_danger_sign(139, 105, (*_p_NOISE).get_sensors_is_danger());
+  Draw_value_borders(115, 105, sensors_low_border[3], sensors_high_border[3], (*_p_NOISE).get_sensors_value(), 1);
 
 
   //здесь должен быть вызов процедуры отрисовки значка уровня отклонения параметра от оптимального.
@@ -535,17 +599,17 @@ void SCREEN::PageDraw_2() {
   //таким образом будет выводиться последнее полученное значение
   v_TEMP.toCharArray(printout, 5);  //5 - количество символов (5-1=4, 4 символа выводится)
   (*_p_TFT).text(printout, 0, 15);  //вывести text по координатам x=0 от левого края и y=15 от верхнего
-  Draw_danger_sign(138, 15, (*_p_TEMP).get_sensors_is_danger());
+  Draw_danger_sign(139, 15, (*_p_TEMP).get_sensors_is_danger());
+  Draw_value_borders(115, 15, sensors_low_border[4], sensors_high_border[4], (*_p_TEMP).get_sensors_value(), 2);
   v_HUM.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 60);
-  Draw_danger_sign(138, 60, (*_p_HUM).get_sensors_is_danger());
+  Draw_danger_sign(139, 60, (*_p_HUM).get_sensors_is_danger());
+  Draw_value_borders(115, 60, sensors_low_border[5], sensors_high_border[5], (*_p_HUM).get_sensors_value(), 2);
   v_GAS.toCharArray(printout, 5);
   (*_p_TFT).text(printout, 0, 105);
-  Draw_danger_sign(138, 105, (*_p_CO2).get_sensors_is_danger());
+  Draw_danger_sign(139, 105, (*_p_CO2).get_sensors_is_danger());
+  Draw_value_borders(115, 105, sensors_low_border[6], sensors_high_border[6], (*_p_CO2).get_sensors_value(), 2);
 
-
-
-  //здесь должен быть вызов процедуры отрисовки значка уровня отклонения параметра от оптимального.
 
   _time_stamp = millis();
 };

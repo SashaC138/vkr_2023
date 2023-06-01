@@ -88,6 +88,12 @@ public:
   float getValue() {
     return _Value;
   };
+  float getComfortMin() {
+    return _comfort_min;
+  };
+  float getComfortMax() {
+    return _comfort_max;
+  };
   float getlux() {  //для получения значения освещённости сенсором "освещенность" из сенсора "пульсации" по ссылке.
     return _lux;
   };
