@@ -35,15 +35,14 @@ DHT dht(DHTPIN, DHTTYPE);
 
 
 //Подключение датчика MQ135:
-//#include <TroykaMQ.h>
 #include "MQ135plus.h"  // имя для пина, к которому подключен нагреватель датчика:
 #define PIN_MQ135_HEATER 2
-#define RZERO_VALUE_MQ135 30.66
+//#define RZERO_VALUE_MQ135 30.66
+#define RZERO_VALUE_MQ135 232
 // имя для пина, к которому подключен датчик:
 #define PIN_MQ135 A5
 //инициализация датчика:
-//MQ135plus mq135(PIN_MQ135, RZERO_VALUE_MQ135);
-MQ135plus mq135(PIN_MQ135, 236);
+MQ135plus mq135(PIN_MQ135, RZERO_VALUE_MQ135);
 
 
 
