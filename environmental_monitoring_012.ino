@@ -101,8 +101,8 @@ SENSOR* SENSOR_ARRAY[] = { 0, &mySensLUX, &mySensPULSE, &mySensNOISE, &mySensTEM
 //значения каких страниц игнорируются:
 //нулевой страницы не существует;
 //1я и 2я страницы не блокируются
-bool ignored_pages_array[9] = { 0, 0, 0, false, false, false, false, false, false };
-
+bool ignored_pages_array[9] = { 0, 0, false, false, false, false, false, false, false };
+bool flag_screen_off = false;  //для блокировки экрана в целом (чёрный экран)
 byte current_page = 1;
 
 
@@ -242,11 +242,18 @@ void checkButton_and_setPage(bool btnState, byte current_page) {
   }
   if ((btnState) && (flag) && (flag_long) && ((millis() - btnTimer) > set_button_long_time)) {
     flag_short = false;
-    if ((current_page >= 3) && ((ignored_pages_array[current_page]) == false)) {
+    if ((ignored_pages_array[2] == true)) {
+      ignored_pages_array[2] = false;
+      flag_screen_off = false;
+      myScreen.nextpage(1);
+      myScreen.nextpage(-1);
+    } else if ((current_page >= 3) && ((ignored_pages_array[current_page]) == false)) {
       ignored_pages_array[current_page] = true;
-    } else {
+    } else if ((current_page >= 3) && ((ignored_pages_array[current_page]) == true)) {
       ignored_pages_array[current_page] = false;
-    };
+    } else if ((current_page == 2) && ((ignored_pages_array[2]) == false)) {
+      ignored_pages_array[2] = true;
+    } 
     flag_long = false;
     btnTimer = millis();
     //Serial.println("press hold");
@@ -282,18 +289,21 @@ long timestamp1 = millis();
 
 void loop() {
 
-  if (ignored_pages_array[current_page] == 1) {
+  if ((ignored_pages_array[current_page] == 1) && (current_page >= 3)) {
     myScreen.Draw_ignor_sign(current_page, 1);  //рисуем значок игнора
   } else if ((ignored_pages_array[current_page] == 0) && (current_page >= 3)) {
     myScreen.Draw_ignor_sign(current_page, 0);  //убираем значок игнора
-  };
+  } else if ((ignored_pages_array[current_page] == 1) && (current_page == 2) && (flag_screen_off == false)) {
+    flag_screen_off = true;
+  }
 
-  myScreen.refresh();
+  //myScreen.refresh() переехал вниз
 
-  if ((millis() - timestamp1) < 500) {
+
+  if ((millis() - timestamp1) < 1000) {
     count1 = count1 + 1;
   } else {
-    //Serial.println(count1);
+    Serial.println(count1);
     count1 = 0;
     timestamp1 = millis();
   };
@@ -353,6 +363,22 @@ void loop() {
       Serial.println("/////////////////////////////////");
 
       time_stamp_otladka_ignor = millis();
+    }
+
+
+    if (ignored_pages_array[2] == false) {
+      myScreen.refresh();
+    } else if ((ignored_pages_array[2] == true) && (danger_counter == 0)) {
+      if (flag_screen_off == true){
+        newScreen.background(0, 0, 0);
+        flag_screen_off = false;
+      }
+    } else if ((ignored_pages_array[2] == true) && (danger_counter > 0)) {
+      ignored_pages_array[2] = false;
+      flag_screen_off = false;
+      myScreen.nextpage(1);
+      myScreen.nextpage(-1);
+      myScreen.refresh();
     }
 
 

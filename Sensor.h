@@ -138,7 +138,7 @@ private:
 
   void refresh_SEN_LUX();
   void refresh_SEN_PULSE();
-  void refresh_SEN_SHUM();
+  void refresh_SEN_NOISE();
   void refresh_SEN_TEMP();
   void refresh_SEN_HUM();
   void refresh_SEN_CO2();
@@ -169,7 +169,7 @@ void SENSOR::refresh() {
 
     case SEN_NOISE:
       //это датчик шума
-      //здесь должна быть процедура refresh() для датчика шума.
+      refresh_SEN_NOISE();
       break;
 
     case SEN_TEMP:
@@ -425,13 +425,13 @@ void SENSOR::refresh_SEN_LUX() {
 
 
 
-void SENSOR::refresh_SEN_SHUM() {
+void SENSOR::refresh_SEN_NOISE() {
   if ((millis() - _time_stamp) < _refreshPeriod) {
     return;  //выходим из процедуры
   } else {
 
     //пока нет датчика шума, зададим ему значение напрямую:
-    _Value = 12.3;
+    _Value = NAN;
 
     CheckRead();
     _predValue = _Value;
