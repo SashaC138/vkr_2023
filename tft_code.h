@@ -1,6 +1,7 @@
 #include <TFT.h>  // Hardware-specific library
 #include <SPI.h>
 #include "Sensor.h"
+#include "rus_words.h"
 
 
 #define screen_refresh_time 250                      //промежуток между обновлениями экрана, в миллисекундах (глобальный)
@@ -91,9 +92,10 @@ private:
   SENSOR* _p_CO2;
 
   //переменные, которые будут использоваться внутри процедуры refresh для реализации отображения страниц экрана:
+  //хранят значения _Value, полученные с сенсоров:
   float v_LUX, v_PULS, v_NOISE;
   float v_TEMP, v_HUM, v_CO2;
-
+  //хранят строковый вид предыдущих переменных:
   String str_v_LUX, str_v_PULS, str_v_NOISE;
   String str_v_TEMP, str_v_HUM, str_v_CO2;
 
@@ -209,7 +211,6 @@ void SCREEN::refresh() {
 };
 
 
-
 //======================================РАЗДЕЛ_ОСНОВНЫХ_ПРОЦЕДУР_И_ФУНКЦИЙ_(не refresh())====================================== :
 
 
@@ -240,6 +241,7 @@ void SCREEN::Draw_value_borders(byte pos_x, byte pos_y, float comfort_min, float
   byte color_g = 250;
   byte color_r = 0;
   float center = 0;
+  float buf_value = value;
 
   if (_page >= 3) {
     tr_side = 40;
@@ -262,11 +264,14 @@ void SCREEN::Draw_value_borders(byte pos_x, byte pos_y, float comfort_min, float
     center = (comfort_min + comfort_max) / 2;
   } else if (direction_number == 1) {  //если будет рисоваться иконка "одноправленной" возможности изменения (нижняя граница всегда 0)
     center = comfort_min;
+    if (buf_value < comfort_min) {
+      buf_value = comfort_min;
+    }
   }
 
 
-  if (value > center) {
-    step = ceil((value - center) / ((comfort_max - center) / (tr_side / 2)));
+  if (buf_value > center) {
+    step = ceil((buf_value - center) / ((comfort_max - center) / (tr_side / 2)));
 
     if (direction_number == 1) {
       if (step > (tr_side / 2)) {
@@ -302,8 +307,8 @@ void SCREEN::Draw_value_borders(byte pos_x, byte pos_y, float comfort_min, float
         x = x + 1;
       };
     };
-  } else if (value < center) {
-    step = ceil((center - value) / ((center - comfort_min) / (tr_side / 2)));
+  } else if ((buf_value < center) && (direction_number == 2)) {
+    step = ceil((center - buf_value) / ((center - comfort_min) / (tr_side / 2)));
     if ((direction_number == 2) && (step > (tr_side / 2))) {
       step = (tr_side / 2);
     };
@@ -397,7 +402,10 @@ void SCREEN::Draw_ignor_sign(byte current_page, bool draw) {
       //рисуем красный восклицательный знак:
       (*_p_TFT).stroke(255, 0, 0);
       (*_p_TFT).setTextSize(3);
-      (*_p_TFT).text("!", 140, 100);
+      (*_p_TFT).text("!", 110, 100);
+      (*_p_TFT).setTextSize(1);
+      (*_p_TFT).text(get_rus_word_number(13), 123, 103);
+      (*_p_TFT).text(get_rus_word_number(14), 123, 113);
 
       //меняем цвет текста обратно на белый:
       (*_p_TFT).stroke(255, 255, 255);
@@ -406,7 +414,10 @@ void SCREEN::Draw_ignor_sign(byte current_page, bool draw) {
     } else {
       (*_p_TFT).stroke(0, 0, 0);
       (*_p_TFT).setTextSize(3);
-      (*_p_TFT).text("!", 140, 100);
+      (*_p_TFT).text("!", 110, 100);
+      (*_p_TFT).setTextSize(1);
+      (*_p_TFT).text(get_rus_word_number(13), 123, 103);
+      (*_p_TFT).text(get_rus_word_number(14), 123, 113);
 
       //меняем цвет текста обратно на белый:
       (*_p_TFT).stroke(255, 255, 255);
@@ -434,23 +445,23 @@ void SCREEN::Static_PageDraw_1() {
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).text("1", 150, 0);
 
-  (*_p_TFT).stroke(255, 0, 255);            //шрифт текста дальше =фиолетовый
-  (*_p_TFT).setTextSize(1);                 //размер текста дальше =1
-  (*_p_TFT).text("Osveschennost`:", 0, 0);  //вывод текста "Osveschennost`:" с отступом от левого края = 0 и от верхнего = 0
+  (*_p_TFT).stroke(255, 0, 255);  //шрифт текста дальше =фиолетовый
+  (*_p_TFT).setTextSize(1);       //размер текста дальше =1
+  (*_p_TFT).text(get_rus_word_number(1), 0, 0);
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("Lux", 78, 18);  //вывод текста "Lux" с отступом от левого края = 78 и от верхнего = 20
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
-  (*_p_TFT).text("Koefficient Pul`saciy:", 0, 45);
+  (*_p_TFT).text(get_rus_word_number(2), 0, 45);
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 78, 64);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
-  (*_p_TFT).text("Uroven` Shuma:", 0, 90);
+  (*_p_TFT).text(get_rus_word_number(3), 0, 90);
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("dB", 78, 109);
@@ -575,7 +586,7 @@ void SCREEN::Static_PageDraw_2() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
-  (*_p_TFT).text("Temperatura:", 0, 0);
+  (*_p_TFT).text(get_rus_word_number(4), 0, 0);
   //сначала рисуем градусы ("°"). Так как такой символ не поддерживается, рисуем универсально - с помощью буквы "о" наименьшего размера:
   (*_p_TFT).setTextSize(0);
   (*_p_TFT).stroke(255, 255, 255);
@@ -586,14 +597,14 @@ void SCREEN::Static_PageDraw_2() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
-  (*_p_TFT).text("Vlazjnost`:", 0, 45);
+  (*_p_TFT).text(get_rus_word_number(5), 0, 45);
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 78, 64);
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(1);
-  (*_p_TFT).text("Uroven` CO2:", 0, 90);
+  (*_p_TFT).text(get_rus_word_number(6), 0, 90);
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("ppm", 78, 107);
@@ -718,8 +729,9 @@ void SCREEN::Static_PageDraw_3() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("Osveschen-", 0, 0);
-  (*_p_TFT).text("nost`:", 0, 17);
+  //(*_p_TFT).text(get_rus_word_number(7), 0, 0);
+  //(*_p_TFT).text(get_rus_word_number(8), 0, 17);
+  (*_p_TFT).text(get_rus_word_number(1), 0, 17);
   (*_p_TFT).setTextSize(3);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("Lux", 100, 43);
@@ -788,8 +800,8 @@ void SCREEN::Static_PageDraw_4() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("Koefficient", 0, 0);
-  (*_p_TFT).text("Pul`saciy:", 0, 17);
+  (*_p_TFT).text(get_rus_word_number(9), 0, 0);
+  (*_p_TFT).text(get_rus_word_number(10), 0, 17);
   (*_p_TFT).setTextSize(3);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 100, 43);
@@ -859,8 +871,8 @@ void SCREEN::Static_PageDraw_5() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("Uroven`", 0, 0);
-  (*_p_TFT).text("Shuma:", 0, 17);
+  (*_p_TFT).text(get_rus_word_number(11), 0, 0);
+  (*_p_TFT).text(get_rus_word_number(12), 0, 17);
   (*_p_TFT).setTextSize(3);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 100, 43);
@@ -929,7 +941,7 @@ void SCREEN::Static_PageDraw_6() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("Temperatura:", 0, 17);
+  (*_p_TFT).text(get_rus_word_number(4), 0, 17);
   (*_p_TFT).setTextSize(2);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("o", 100, 39);
@@ -1001,7 +1013,7 @@ void SCREEN::Static_PageDraw_7() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("Vlazjnost`:", 0, 17);
+  (*_p_TFT).text(get_rus_word_number(5), 0, 17);
   (*_p_TFT).setTextSize(3);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("%", 100, 43);
@@ -1070,7 +1082,9 @@ void SCREEN::Static_PageDraw_8() {
 
   (*_p_TFT).stroke(255, 0, 255);
   (*_p_TFT).setTextSize(2);
-  (*_p_TFT).text("Uroven` CO2:", 0, 17);
+  (*_p_TFT).text(get_rus_word_number(11), 0, 0);
+  (*_p_TFT).text("CO2:", 0, 17);
+  //(*_p_TFT).text(get_rus_word_number(6), 0, 17);
   (*_p_TFT).setTextSize(3);
   (*_p_TFT).stroke(255, 255, 255);
   (*_p_TFT).text("ppm", 100, 43);
@@ -1128,30 +1142,27 @@ void SCREEN::PageDraw_8() {
   if (otladka_heater_on) {           //если включён вывод состояния датчика CO2 (on/off)
     if (!(*_p_CO2).getHeaterON()) {  //если датчик включён
       //рисуем красный круг:
-      (*_p_TFT).fill(255, 0, 0);
+      (*_p_TFT).fill(166, 0, 0);
       (*_p_TFT).stroke(255, 0, 0);
-      (*_p_TFT).circle(140, 90, 10);
+      (*_p_TFT).circle(140, 80, 10);
       //белый текст внутри: OFF:
       (*_p_TFT).stroke(255, 255, 255);
       (*_p_TFT).setTextSize(1);
-      (*_p_TFT).text("OFF", 132, 88);
+      (*_p_TFT).text("OFF", 132, 77);
     } else {  //если датчик выключен
       //рисуем зелёный круг:
-      (*_p_TFT).fill(0, 255, 0);
+      (*_p_TFT).fill(0, 166, 0);
       (*_p_TFT).stroke(0, 255, 0);
-      (*_p_TFT).circle(140, 90, 10);
+      (*_p_TFT).circle(140, 80, 10);
       //белый текст внутри: ON:
       (*_p_TFT).stroke(255, 255, 255);
       (*_p_TFT).setTextSize(1);
-      (*_p_TFT).text("ON", 135, 88);
+      (*_p_TFT).text("ON", 135, 77);
     };
     (*_p_TFT).fill(0, 0, 0);
     (*_p_TFT).stroke(255, 255, 255);
   }
 
-
-  //здесь должен быть вызов процедуры отрисовки значка тревоги, если параметр вышел за оптимальные границы значений.
-  //здесь должен быть вызов процедуры отрисовки значка уровня отклонения параметра от оптимального.
 
   _time_stamp = millis();
 };
