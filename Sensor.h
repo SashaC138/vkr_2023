@@ -222,10 +222,8 @@ void SENSOR::CheckRead() {
   //Serial.print(_predValue); Serial.print("; "); Serial.print(_Value); Serial.print("; "); Serial.println(analogRead(A5));
   //Serial.println(analogRead(A5));
 
-  if (!(_Ready) && (_SENSOR_t != SEN_CO2)) {
-
-    float delta = abs(_predValue - _Value);
-
+  float delta = abs(_predValue - _Value);
+  if (_Ready == false) {
     if ((delta < _Delta) && (delta > 0)) {
       _Ready = true;
     } else {
@@ -501,13 +499,9 @@ void SENSOR::refresh_SEN_CO2() {
     return;  //выходим из процедуры
   } else {
 
-    OnLine();
+    //OnLine();
 
-    //if (!isnan((*_p_dht).getValue())&&!isnan((*_p_dht).getValue())){
 
-    //}
-    //_Value = (*_p_mq).getCorrectedPPM(temperature, humidity);
-    //временно так:
     _Value = (*_p_mq).getCorrectedPPM((*_p_temp).getValue(), (*_p_hum).getValue());
 
     CheckRead();

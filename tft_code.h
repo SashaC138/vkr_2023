@@ -6,7 +6,7 @@
 
 #define screen_refresh_time 250                      //промежуток между обновлениями экрана, в миллисекундах (глобальный)
 #define otladka_red_rectangle true                   //отладочный флаг для включения границ полей вывода символов для динамических данных
-#define otladka_heater_on true                       //отладочный флаг для включения отображения состояния датчика CO2 (on/off)
+#define otladka_heater_on false                       //отладочный флаг для включения отображения состояния датчика CO2 (on/off)
 #define get_sensors_value getValue                   //(как называется метод, отвечающий за получение значения)
 #define get_sensors_value_LOW_border getComfortMin   //(как называется метод, отвечающий за получение нижней границы оптимального значения)
 #define get_sensors_value_HIGH_border getComfortMax  //(как называется метод, отвечающий за получение верхней границы оптимального значения)
@@ -562,7 +562,9 @@ void SCREEN::PageDraw_1() {
   Draw_value_borders(115, 105, sensors_low_border[3], sensors_high_border[3], v_NOISE, 1);
   str_v_NOISE = String(v_NOISE, 1);
   str_v_NOISE.toCharArray(printout, 5);
+  (*_p_TFT).stroke(127, 127, 127);  //цвет границы - серый, потому что датчика уровня шума нет
   (*_p_TFT).text(printout, 0, 105);
+  (*_p_TFT).stroke(255, 255, 255);  //цвет границы - белый
   if (ignored_sensors_array[3] == false) {
     Draw_danger_sign(139, 105, (*_p_NOISE).get_sensors_is_danger());
   }
@@ -917,7 +919,9 @@ void SCREEN::PageDraw_5() {
   Draw_value_borders(1, 80, sensors_low_border[3], sensors_high_border[3], v_NOISE, 1);
   str_v_NOISE = String(v_NOISE, 1);
   str_v_NOISE.toCharArray(printout, 5);
+  (*_p_TFT).stroke(127, 127, 127);  //цвет границы - серый, потому что датчика уровня шума нет
   (*_p_TFT).text(printout, 0, 39);
+  (*_p_TFT).stroke(255, 255, 255);  //цвет границы - белый
   if (ignored_sensors_array[3] == false) {
     Draw_danger_sign(50, 80, (*_p_NOISE).get_sensors_is_danger());
   }

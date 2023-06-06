@@ -38,7 +38,7 @@ DHT dht(DHTPIN, DHTTYPE);
 #include "MQ135plus.h"  // имя для пина, к которому подключен нагреватель датчика:
 #define PIN_MQ135_HEATER 2
 //#define RZERO_VALUE_MQ135 30.66
-#define RZERO_VALUE_MQ135 232
+#define RZERO_VALUE_MQ135 150
 // имя для пина, к которому подключен датчик:
 #define PIN_MQ135 A5
 //инициализация датчика:
@@ -50,9 +50,12 @@ MQ135plus mq135(PIN_MQ135, RZERO_VALUE_MQ135);
 //подключение пользовательской библиотеки работы со светодиодом. Инициализация светодиода:
 #include "led.h"
 #define led_modes_refresh_time 500  //как часто способны меняться режимы светодиода
+#define led_sin_time 30 * 1000      //время режима "синусоида" или полное время загрузки устройства - за 30 сек. в рабочее состояние переходит mq135
 LED myLed(6, LED_SIN);
 uint32_t time_stamp_led = millis();
+uint32_t time_stamp_led_sin = millis();
 byte danger_counter = 0;  //сколько danger-ов накопилось среди сенсоров
+byte danger_counter_save = 0;
 
 
 
@@ -253,7 +256,7 @@ void checkButton_and_setPage(bool btnState, byte current_page) {
       ignored_pages_array[current_page] = false;
     } else if ((current_page == 2) && ((ignored_pages_array[2]) == false)) {
       ignored_pages_array[2] = true;
-    } 
+    }
     flag_long = false;
     btnTimer = millis();
     //Serial.println("press hold");
@@ -289,7 +292,7 @@ long timestamp1 = millis();
 
 void loop() {
 
-  if ((ignored_pages_array[current_page] == 1) && (current_page >= 3)) {
+  if ((ignored_pages_array[current_page] == 1) && (current_page >= 3) && ((ignored_pages_array[2] == 0))) {
     myScreen.Draw_ignor_sign(current_page, 1);  //рисуем значок игнора
   } else if ((ignored_pages_array[current_page] == 0) && (current_page >= 3)) {
     myScreen.Draw_ignor_sign(current_page, 0);  //убираем значок игнора
@@ -345,7 +348,7 @@ void loop() {
         }
       }
     };
-
+    danger_counter_save = danger_counter;
 
     if ((otladka_serial_print_ignor == true) && ((millis() - time_stamp_otladka_ignor) > otladka_serial_print_time_stamp)) {
       for (byte i = 1; i <= 8; i++) {
@@ -366,27 +369,20 @@ void loop() {
     }
 
 
-    if (ignored_pages_array[2] == false) {
-      myScreen.refresh();
-    } else if ((ignored_pages_array[2] == true) && (danger_counter == 0)) {
-      if (flag_screen_off == true){
-        newScreen.background(0, 0, 0);
-        flag_screen_off = false;
-      }
-    } else if ((ignored_pages_array[2] == true) && (danger_counter > 0)) {
-      ignored_pages_array[2] = false;
-      flag_screen_off = false;
-      myScreen.nextpage(1);
-      myScreen.nextpage(-1);
-      myScreen.refresh();
-    }
-
-
     if (danger_counter > 0) {  //если насчитали больше нуля, то переводим светодиод в режим DANGER
       myLed.setMode(LED_DANGER, danger_counter);
-    } else {
+    }
+
+    if (danger_counter == 0) {
       myLed.setMode(LED_BLINK);
     };
+
+    if ((millis() - time_stamp_led_sin) < led_sin_time) {
+      myLed.setMode(LED_SIN);
+    } else if (danger_counter == 0) {
+      myLed.setMode(LED_BLINK);
+    };
+
 
     danger_counter = 0;  //счётчик обнуляем, зайдём проверить снова через время led_modes_refresh_time
     time_stamp_led = millis();
@@ -395,6 +391,20 @@ void loop() {
   myLed.refresh();
 
 
+  if (ignored_pages_array[2] == false) {
+    myScreen.refresh();
+  } else if ((ignored_pages_array[2] == true) && (danger_counter_save == 0)) {
+    if (flag_screen_off == true) {
+      newScreen.background(0, 0, 0);
+      flag_screen_off = false;
+    }
+  } else if ((ignored_pages_array[2] == true) && (danger_counter_save > 0)) {
+    ignored_pages_array[2] = false;
+    flag_screen_off = false;
+    myScreen.nextpage(1);
+    myScreen.nextpage(-1);
+    myScreen.refresh();
+  }
 
   //условия проверки состояний и времени кнопки для переключения страниц:
   bool btnState = !digitalRead(KEY_PRESSED);

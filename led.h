@@ -225,6 +225,7 @@ void LED::setmode_LED_SIN() {
   } else {
     _sin_number = _sin_number + 1;  //  это ж байт ! можно не проверять на 256
     analogWrite(_pin, sin_tab[_sin_number]);
+    _state = 1;
     _time_stamp = millis();
   }
   return;
