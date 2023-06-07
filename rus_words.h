@@ -1,0 +1,39 @@
+const char* get_rus_word_number(int word_number) {
+  switch (word_number) {
+    case 1:
+      return "Освещённость:";  //"Osveschennost`:"
+    case 2:
+      return "Коэффициент пульсаций:";  //"Koefficient pul`saciy:"
+    case 3:
+      return "Уровень шума:";  //"Uroven` shuma:"
+    case 4:
+      return "Температура:";  //"Temperatura:"
+    case 5:
+      return "Влажность:";  //"Vlajnost`:"
+    case 6:
+      return "Уровень CO2:";  //"Uroven` CO2:"
+
+    case 7:
+      return "Освещён-";  //"Osveschen-"
+    case 8:
+      return "ность:";  //"nost`:"
+
+    case 9:
+      return "Коэффициент";  //"Koefficient"
+    case 10:
+      return "пульсаций:";  //"pul`saciy:"
+
+    case 11:
+      return "Уровень";  //"Uroven`"
+    case 12:
+      return "шума:";  //"shuma:"
+
+    case 13:
+      return "Блоки";  //"Bloki"
+    case 14:
+      return "рован";  //"rovan"
+
+    default:
+      break;
+  }
+}
