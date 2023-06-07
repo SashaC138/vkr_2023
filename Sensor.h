@@ -248,14 +248,14 @@ float adc_to_lux(float adc_lux) {
   //lux = 5.72 + 0.943 * lux + 0.000197 * lux * lux;
   //
   //ещё более сокращённо:
-  float lux = ((89.0 * adc_lux * AREF) / 128) + 1.7;
-  //lux = 5.72 + 0.943 * lux + 0.000197 * lux * lux;
+  float lux = ((309.0 * adc_lux * AREF) / 256) + 5.0;
   //
   //
   //
   //убираем промежуточную переменную lux и сразу пишем итоговое выражение в return:
 
-  return 5.72 + 0.943 * lux + 0.000197 * lux * lux;
+  //return 5.72 + 0.943 * lux + 0.000197 * lux * lux;
+  return lux;
 }
 
 
