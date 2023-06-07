@@ -1,9 +1,5 @@
 #include "DHT.h"
-//#include <TroykaMQ.h>
 #include "MQ135plus.h"
-
-#define TimeToHeaterON 1000 * 60 * 1  //1000 мс * 60 секунд * 15 = 15 минут
-#define PIN_MQ135_HEATER 2
 
 #define SEN_LUX_analog_pin A0      //пин, откуда мы будем читать недозначения освещённости датчика TEMT6000
 #define time_stamp_minmax_lux 100  //период обновления данных для коэффициента пульсаций. 100 - оптимальное значение
@@ -264,94 +260,23 @@ float adc_to_lux(float adc_lux) {
 
 
 
-//ПРОЦЕДУРА ! (а что за процедура и нужна ли она - потом уточнить)
-void SENSOR::OnLine() {
-
-  //а первое включение??
-  if ((millis() - _time_stamp_ForHeater) < TimeToHeaterON) {
-    //(*_p_mq).heaterPwrOff();
-    if (_Ready) {
-      _HeaterON = false;
-    }
-    //return;  //выходим из процедуры
-  } else {
-    _HeaterON = true;
-    //(*_p_mq).heaterPwrHigh();
-
-    _time_stamp_ForHeater = millis();
-  };
-
-  //Serial.println(_Value);
-  //Serial.println(_HeaterON);
-
-  //Как это связать с _Ready
-  if (_HeaterON == true) {
-    //(*_p_mq).heaterPwrHigh();
-    digitalWrite(PIN_MQ135_HEATER, HIGH);
-  }
-  if (_HeaterON == false) {
-    //(*_p_mq).heaterPwrOff();
-    digitalWrite(PIN_MQ135_HEATER, LOW);
-  }
-};
-
-
-
 //========================================РАЗДЕЛ_СЕНСОРА_КОЭФФИЦИЕНТА_ПУЛЬСАЦИЙ======================================== :
 
 
 
-//int count=0;
 
 void SENSOR::refresh_SEN_PULSE() {
 
   if ((millis() - _time_stamp) < _refreshPeriod) {
     return;  //выходим из процедуры
   } else {
-    //float l = analogRead(SEN_LUX_analog_pin);
-    //Serial.println(l);
-    //_lux = adc_to_lux(l);
-    //
-    //упрощение:
+
     _lux = adc_to_lux(analogRead(SEN_LUX_analog_pin));
 
 
     bool uslovie_for_max = ((_time_stamp - _time_stamp_max_lux) > time_stamp_minmax_lux);  //проверка условия для _max_lux
     bool uslovie_for_min = ((_time_stamp - _time_stamp_min_lux) > time_stamp_minmax_lux);  //проверка условия для _min_lux
 
-    //вариант 1:
-    /*
-    if (uslovie_for_max) {
-      _max_lux = _lux;
-      _time_stamp_max_lux = millis();
-      _Value = ((_max_lux - _min_lux) / (_max_lux + _min_lux)) * 100;
-    } else if ((!uslovie_for_max) && (_lux > _max_lux)) {
-      _max_lux = _lux;
-      _time_stamp_max_lux = millis();
-      _Value = ((_max_lux - _min_lux) / (_max_lux + _min_lux)) * 100;
-    } else if (uslovie_for_min) {
-      _min_lux = _lux;
-      _time_stamp_min_lux = millis();
-      _Value = ((_max_lux - _min_lux) / (_max_lux + _min_lux)) * 100;
-    } else if ((!uslovie_for_min) && (_lux < _min_lux)) {
-      _min_lux = _lux;
-      _time_stamp_min_lux = millis();
-      _Value = ((_max_lux - _min_lux) / (_max_lux + _min_lux)) * 100;
-    };
-    //на случай если выполнены оба условия (uslovie_for_max и uslovie_for_min) надо проверять uslovie_for_min снова отдельно:
-    if (uslovie_for_min) {
-      _min_lux = _lux;
-      _time_stamp_min_lux = millis();
-      _Value = ((_max_lux - _min_lux) / (_max_lux + _min_lux)) * 100;
-    };
-    //Serial.print("_max_lux = ");
-    //Serial.println(_max_lux);
-    //Serial.print("_min_lux = ");
-    //Serial.println(_min_lux);
-    */
-
-
-    //вариант 2 (на всякий случай):
     if (uslovie_for_max) {
       _max_lux = _lux;
       _time_stamp_max_lux = millis();
@@ -367,12 +292,6 @@ void SENSOR::refresh_SEN_PULSE() {
       _min_lux = _lux;
       _time_stamp_min_lux = millis();
     };
-    //Serial.print("_max_lux = ");
-    //Serial.println(_max_lux);
-    //Serial.print("_min_lux = ");
-    //Serial.println(_min_lux);
-
-
 
     _Value = ((_max_lux - _min_lux) / (_max_lux + _min_lux)) * 100;
 
@@ -386,8 +305,6 @@ void SENSOR::refresh_SEN_PULSE() {
     _predValue = _Value;
 
     Danger();
-
-    //count=count+1;
 
     _time_stamp = millis();
     return;
@@ -454,7 +371,6 @@ void SENSOR::refresh_SEN_TEMP() {
     _Value = (*_p_dht).readTemperature();
     if (isnan(_Value)) {
       _Ready = false;
-      //Serial.println("TEMP. Can't read the temp DATA");
     } else {
       _Ready = true;
       Danger();  // проверим прочитанное значение на предмет попадания в комфортную зону
@@ -477,7 +393,6 @@ void SENSOR::refresh_SEN_HUM() {
     _Value = (*_p_dht).readHumidity();
     if (isnan(_Value)) {
       _Ready = false;
-      //Serial.println("HUM. Can't read the humid DATA");
     } else {
       _Ready = true;
       Danger();
@@ -499,9 +414,6 @@ void SENSOR::refresh_SEN_CO2() {
     return;  //выходим из процедуры
   } else {
 
-    //OnLine();
-
-
     _Value = (*_p_mq).getCorrectedPPM((*_p_temp).getValue(), (*_p_hum).getValue());
 
     CheckRead();
@@ -514,4 +426,4 @@ void SENSOR::refresh_SEN_CO2() {
 
 
 
-//=========================================================КОНЕЦ_РАЗДЕЛОВ=========================================================
+//===========================КОНЕЦ_РАЗДЕЛОВ===========================

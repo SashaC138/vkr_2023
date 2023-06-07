@@ -6,7 +6,6 @@
 
 #define screen_refresh_time 250                      //промежуток между обновлениями экрана, в миллисекундах (глобальный)
 #define otladka_red_rectangle true                   //отладочный флаг для включения границ полей вывода символов для динамических данных
-#define otladka_heater_on false                       //отладочный флаг для включения отображения состояния датчика CO2 (on/off)
 #define get_sensors_value getValue                   //(как называется метод, отвечающий за получение значения)
 #define get_sensors_value_LOW_border getComfortMin   //(как называется метод, отвечающий за получение нижней границы оптимального значения)
 #define get_sensors_value_HIGH_border getComfortMax  //(как называется метод, отвечающий за получение верхней границы оптимального значения)
@@ -355,19 +354,6 @@ void SCREEN::Draw_danger_sign(byte pos_x, byte pos_y, bool draw_sign) {
       x = x + 1;
     };
 
-    /*
-  (*_p_TFT).line(x, y + tr_side, x + tr_side, y + tr_side);
-  (*_p_TFT).line(x+1, y + tr_side-1, x + tr_side-1, y + tr_side-1);
-  (*_p_TFT).line(x+1, y + tr_side-2, x + tr_side-1, y + tr_side-2);
-  (*_p_TFT).line(x+2, y + tr_side-3, x + tr_side-2, y + tr_side-3);
-  (*_p_TFT).line(x+2, y + tr_side-4, x + tr_side-2, y + tr_side-4);
-
-
-
-  (*_p_TFT).line(x, y + tr_side, x + (tr_side / 2), y);
-  (*_p_TFT).line(x + (tr_side / 2), y, x + tr_side, y + tr_side);
-  (*_p_TFT).line(x + tr_side, y + tr_side, x, y + tr_side);
-  */
     (*_p_TFT).stroke(255, 0, 0);
     if (_page <= 2) {
       (*_p_TFT).setTextSize(2);
@@ -1138,39 +1124,9 @@ void SCREEN::PageDraw_8() {
     Draw_danger_sign(50, 80, (*_p_CO2).get_sensors_is_danger());
   }
 
-  //Serial.print("getHeaterON()=");
-  //Serial.println((*_p_CO2).getHeaterON());
-  //Serial.print("otladka_heater_on=");
-  //Serial.println(otladka_heater_on);
-
-  if (otladka_heater_on) {           //если включён вывод состояния датчика CO2 (on/off)
-    if (!(*_p_CO2).getHeaterON()) {  //если датчик включён
-      //рисуем красный круг:
-      (*_p_TFT).fill(166, 0, 0);
-      (*_p_TFT).stroke(255, 0, 0);
-      (*_p_TFT).circle(140, 80, 10);
-      //белый текст внутри: OFF:
-      (*_p_TFT).stroke(255, 255, 255);
-      (*_p_TFT).setTextSize(1);
-      (*_p_TFT).text("OFF", 132, 77);
-    } else {  //если датчик выключен
-      //рисуем зелёный круг:
-      (*_p_TFT).fill(0, 166, 0);
-      (*_p_TFT).stroke(0, 255, 0);
-      (*_p_TFT).circle(140, 80, 10);
-      //белый текст внутри: ON:
-      (*_p_TFT).stroke(255, 255, 255);
-      (*_p_TFT).setTextSize(1);
-      (*_p_TFT).text("ON", 135, 77);
-    };
-    (*_p_TFT).fill(0, 0, 0);
-    (*_p_TFT).stroke(255, 255, 255);
-  }
-
-
   _time_stamp = millis();
 };
 
 
 
-//=========================================================КОНЕЦ_РАЗДЕЛОВ=========================================================
+//===========================КОНЕЦ_РАЗДЕЛОВ===========================

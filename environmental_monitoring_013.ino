@@ -1,11 +1,3 @@
-#define otladka_serial_print false             //включение вывода отладочной информации по всем сенсорам в "serial print".
-#define otladka_serial_print_ignor false       //включение вывода отладочной информации по всем сенсорам в "serial print ignor".
-#define otladka_serial_print_button false      //включение вывода отладочной информации о кнопке и страницах в "serial print".
-#define otladka_serial_print_time_stamp 3000   //константа времени вывода отладочной информации по всем сенсорам в "serial print".
-uint32_t time_stamp_otladka = millis();        //время между выводами отладочной информации по всем сенсорам в "serial print".
-uint32_t time_stamp_otladka_ignor = millis();  //время между выводами отладочной информации по всем сенсорам в "serial print ignor".
-
-
 #include "tft_code.h"  //пользовательская библиотека для работы с дисплеем
 //
 //в tht_code.h также входят:
@@ -129,7 +121,7 @@ void setup() {
   pinMode(PIN_MQ135_HEATER, OUTPUT);
   digitalWrite(PIN_MQ135_HEATER, HIGH);
 
-  //для "пробуждения" порта для чтения (ещё нужно?):
+  //для "пробуждения" порта для чтения
 
   byte i = 0;
   for (i = 0; i < 100; i++) {
@@ -141,101 +133,8 @@ void setup() {
 
 
 
-
-
-
-//процедура вывода отладочной информации по сенсорам:
-void print_otladka_info_sensors(SENSOR* obj) {
-
-  //отладка:
-  Serial.print("Type = ");
-  byte type = (*obj).getType();
-  switch (type) {
-    case 0:
-      Serial.print("SEN_PULSE");
-      break;
-
-    case 1:
-      Serial.print("SEN_LUX  ");
-      break;
-
-    case 2:
-      Serial.print("SEN_NOISE");
-      break;
-
-    case 3:
-      Serial.print("SEN_TEMP ");
-      break;
-
-    case 4:
-      Serial.print("SEN_HUM  ");
-      break;
-
-    case 5:
-      Serial.print("SEN_CO2  ");
-      break;
-
-    default:
-      Serial.print("(UNKNOWN)");
-      break;
-  };
-  Serial.print(" Ready = ");
-  Serial.print((*obj).getReady());
-  Serial.print(" Danger = ");
-  Serial.print((*obj).getDanger());
-  Serial.print(" Value = ");
-  Serial.println((*obj).getValue());
-
-
-  if ((*obj).getType() == SEN_CO2) {
-    /*
-      float rzero = mq135_sensor.getRZero();
-      float correctedRZero = mq135_sensor.getCorrectedRZero(temperature, humidity);
-      float resistance = mq135_sensor.getResistance();
-      float ppm = mq135_sensor.getPPM();
-      float correctedPPM = mq135_sensor.getCorrectedPPM(temperature, humidity);
-
-      Serial.print("MQ135 RZero: ");
-      Serial.print(rzero);
-      Serial.print("\t Corrected RZero: ");
-      Serial.print(correctedRZero);
-      Serial.print("\t Resistance: ");
-      Serial.print(resistance);
-      Serial.print("\t PPM: ");
-      Serial.print(ppm);
-      Serial.print("ppm");
-      Serial.print("\t Corrected PPM: ");
-      Serial.print(correctedPPM);
-      Serial.println("ppm");
-    */
-  }
-}
-
-
-
-
 //Процедура для проверки состояния кнопки и работы с страницами (переключение+игнор страниц)
 void checkButton_and_setPage(bool btnState, byte current_page) {
-
-  /*
-    if ((otladka_serial_print_button == true) && (millis() - time_stamp_otladka > otladka_serial_print_time_stamp)) {
-    //отладка работы кнопки:
-    Serial.print("btnState = ");
-    Serial.print(btnState);
-    Serial.print("; flag = ");
-    Serial.print(flag);
-    Serial.print("; flag_short = ");
-    Serial.print(flag_short);
-    Serial.print("; flag_long = ");
-    Serial.print(flag_long);
-    Serial.print("; (millis() - btnTimer) = ");
-    Serial.println((millis() - btnTimer));
-    Serial.print("1current_page = ");
-    Serial.println(current_page);
-    Serial.println("");
-    time_stamp_otladka = millis();
-    }
-  */
 
   if ((btnState) && (!flag) && ((millis() - btnTimer) > set_button_short_time)) {
     flag = true;
@@ -262,8 +161,6 @@ void checkButton_and_setPage(bool btnState, byte current_page) {
     //Serial.println("press hold");
   }
 
-
-
   if ((!btnState) && (flag) && ((millis() - btnTimer) > button_release_time)) {
     flag = false;
     if (flag_short) {
@@ -283,10 +180,6 @@ void checkButton_and_setPage(bool btnState, byte current_page) {
 
 
 
-
-
-
-
 long count1 = 0;
 long timestamp1 = millis();
 
@@ -300,8 +193,6 @@ void loop() {
     flag_screen_off = true;
   }
 
-  //myScreen.refresh() переехал вниз
-
 
   if ((millis() - timestamp1) < 1000) {
     count1 = count1 + 1;
@@ -310,7 +201,6 @@ void loop() {
     count1 = 0;
     timestamp1 = millis();
   };
-  //Serial.println(millis());
 
 
   for (byte i = 1; i <= 6; i++) {
@@ -318,56 +208,19 @@ void loop() {
     (*t).refresh();  //запускает работу текущего сенсора
   };
 
-
-  //вывод отладочной информации по всем сенсорам:
-  if ((otladka_serial_print == true) && (millis() - time_stamp_otladka > otladka_serial_print_time_stamp)) {
-    Serial.println("");
-    Serial.println("-------------------------------------------------------");
-    for (byte i = 1; i <= 6; i++) {
-      print_otladka_info_sensors(SENSOR_ARRAY[i]);
-    };
-    Serial.println("-------------------------------------------------------");
-    Serial.println("");
-    time_stamp_otladka = millis();
-  }
-
-
   //обработка переключения состояний светодиода:
   if ((millis() - time_stamp_led) < led_modes_refresh_time) {
-    //return;  //не надо слишком часто менять режимы светодиода
+    //не надо слишком часто менять режимы светодиода
   } else {
 
     for (byte i = 1; i <= 6; i++) {  //считаем количество сенсоров, у которых значение вышло за допустимые пределы
       if ((*SENSOR_ARRAY[i]).getDanger()) {
-        //Serial.print("1ignored_pages_array[i+2]: ");
-        //Serial.println(ignored_pages_array[i + 2]);
         if (!(ignored_pages_array[i + 2]) && ((*SENSOR_ARRAY[i]).getReady())) {
-          //Serial.print("2ignored_pages_array[i+2]: ");
-          //Serial.println(ignored_pages_array[i + 2]);
           danger_counter = danger_counter + 1;
         }
       }
     };
     danger_counter_save = danger_counter;
-
-    if ((otladka_serial_print_ignor == true) && ((millis() - time_stamp_otladka_ignor) > otladka_serial_print_time_stamp)) {
-      for (byte i = 1; i <= 8; i++) {
-        Serial.print(i);
-        Serial.print(": ignor:");
-        Serial.print(ignored_pages_array[i]);
-        Serial.print(" ready:");
-        Serial.print((*SENSOR_ARRAY[i]).getReady());
-        Serial.print(" danger:");
-        Serial.println((*SENSOR_ARRAY[i]).getDanger());
-      };
-      Serial.println("///////////");
-      Serial.print("danger_counter: ");
-      Serial.println(danger_counter);
-      Serial.println("/////////////////////////////////");
-
-      time_stamp_otladka_ignor = millis();
-    }
-
 
     if (danger_counter > 0) {  //если насчитали больше нуля, то переводим светодиод в режим DANGER
       myLed.setMode(LED_DANGER, danger_counter);
@@ -413,16 +266,8 @@ void loop() {
 
 
   signed char t = encoder_1.check_and_get();
-  /*
-  if (millis() - time_stamp_otladka > 1000){
-  Serial.print("1signed char t1 = ");
-  Serial.println(t);
-  time_stamp_otladka = millis();
-  }
-*/
+
   if (!(t == 0)) {
-    //Serial.print("2signed char t2 = ");
-    //Serial.println(t);
     myScreen.nextpage(t);
   };
 }
